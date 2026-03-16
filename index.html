@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jesus Saves Ministry – Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold:#b8922a; --gold-light:#d4a93e; --gold-pale:#f5e9c8;
+      --cream:#fdfaf3; --blue-mid:#4a7aad; --blue-deep:#1e3a5f;
+      --gcash-blue:#0070e0; --gcash-light:#e8f2ff;
+      --text-dark:#1a1a2e; --text-mid:#444466; --white:#ffffff;
+      --error:#c0392b; --success:#1e7a4e;
+      --shadow-card:0 20px 60px rgba(30,58,95,.14),0 4px 16px rgba(184,146,42,.10);
+      --radius:18px; --transition:.35s cubic-bezier(.4,0,.2,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Lato',sans-serif;background:var(--cream);color:var(--text-dark);min-height:100vh;overflow-x:hidden}
+    body::before{content:'✝';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(300px,50vw,600px);color:rgba(184,146,42,.055);pointer-events:none;z-index:0;user-select:none;line-height:1}
+    .page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+    .ornament-bar{width:100%;height:6px;background:linear-gradient(90deg,var(--blue-deep),var(--gold),var(--gold-light),var(--gold),var(--blue-deep))}
+
+    /* NAV */
+    .top-nav{width:100%;background:var(--blue-deep);display:flex;align-items:center;justify-content:space-between;padding:10px 28px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+    .nav-brand{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);letter-spacing:.06em}
+    .nav-links{display:flex;gap:8px}
+    .nav-links a{font-family:'Cinzel',serif;font-size:.78rem;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.75);text-decoration:none;padding:7px 14px;border-radius:30px;transition:var(--transition)}
+    .nav-links a:hover{background:rgba(255,255,255,.12);color:#fff}
+    .nav-links a.active{background:var(--gold);color:var(--blue-deep)}
+    .nav-links a.admin-link{background:rgba(184,146,42,.2);color:var(--gold-light);border:1px solid rgba(184,146,42,.3)}
+    .nav-links a.admin-link:hover{background:var(--gold);color:var(--blue-deep)}
+
+    /* HERO */
+    .hero{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(60px,10vh,110px) 24px clamp(50px,8vh,90px);text-align:center;background:linear-gradient(160deg,#f0f6ff 0%,var(--cream) 55%,#f5e9c8 100%)}
+    .cross-icon{font-size:3rem;color:var(--gold);margin-bottom:16px;opacity:0;animation:fadeDown .8s ease forwards .2s;text-shadow:0 2px 16px rgba(184,146,42,.3)}
+    .hero-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.6rem,5vw,3.2rem);color:var(--blue-deep);letter-spacing:.06em;line-height:1.2;opacity:0;animation:fadeDown .9s ease forwards .35s}
+    .hero-title span{color:var(--gold);display:block}
+    .hero-sub{font-family:'Cinzel',serif;font-size:clamp(.95rem,2.5vw,1.25rem);color:var(--blue-mid);margin-top:14px;font-weight:400;letter-spacing:.08em;opacity:0;animation:fadeDown .9s ease forwards .5s}
+    .verse{margin-top:22px;font-style:italic;font-size:clamp(.85rem,2vw,1rem);color:var(--text-mid);max-width:500px;line-height:1.8;opacity:0;animation:fadeDown .9s ease forwards .65s}
+    .verse strong{font-weight:700;color:var(--gold);font-style:normal}
+    .divider{width:clamp(60px,20vw,120px);height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:28px auto 0;opacity:0;animation:fadeIn 1s ease forwards .75s}
+    .hero-btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:40px;opacity:0;animation:fadeUp .9s ease forwards .9s}
+    .btn-enter{padding:16px 48px;font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;letter-spacing:.12em;color:var(--white);background:linear-gradient(135deg,var(--blue-deep),var(--blue-mid));border:none;border-radius:50px;cursor:pointer;box-shadow:0 6px 24px rgba(30,58,95,.25);transition:var(--transition);position:relative;overflow:hidden}
+    .btn-enter::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-light));opacity:0;transition:opacity var(--transition)}
+    .btn-enter:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(30,58,95,.3),0 0 0 4px rgba(184,146,42,.2)}
+    .btn-enter:hover::after{opacity:1}
+    .btn-enter span{position:relative;z-index:1}
+    .btn-view{padding:16px 36px;font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;letter-spacing:.1em;color:var(--blue-deep);background:var(--gold-pale);border:2px solid var(--gold);border-radius:50px;cursor:pointer;transition:var(--transition);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+    .btn-view:hover{background:var(--gold);color:#fff;transform:translateY(-3px);box-shadow:0 8px 24px rgba(184,146,42,.3)}
+
+    /* SECTION */
+    .reg-section{width:100%;max-width:860px;padding:60px 20px 80px;opacity:0;transform:translateY(40px);transition:opacity .7s,transform .7s}
+    .reg-section.visible{opacity:1;transform:none}
+    .section-header{text-align:center;margin-bottom:36px}
+    .section-header h2{font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--blue-deep)}
+    .section-header p{color:var(--text-mid);margin-top:8px;font-size:.9rem}
+    .section-header .gold-line{width:80px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:16px auto 0}
+
+    /* CARD */
+    .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-card);padding:clamp(28px,5vw,48px);position:relative;overflow:hidden}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue-deep),var(--gold),var(--gold-light),var(--gold),var(--blue-deep))}
+    .card-title{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:700;color:var(--blue-deep);text-align:center;letter-spacing:.06em;margin-bottom:6px}
+    .card-title .cs{color:var(--gold);margin:0 6px}
+    .card-sub{text-align:center;font-size:.82rem;color:var(--text-mid);margin-bottom:26px}
+
+    /* FORM */
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:600px){.form-row{grid-template-columns:1fr}}
+    .form-group{margin-bottom:18px}
+    .form-group label{display:block;font-size:.78rem;font-weight:700;letter-spacing:.08em;color:var(--blue-deep);margin-bottom:6px;text-transform:uppercase}
+    .form-group label .req{color:var(--gold);margin-left:3px}
+    .form-group input,.form-group select{width:100%;padding:12px 15px;border:1.5px solid #dce3ef;border-radius:10px;font-family:'Lato',sans-serif;font-size:.95rem;color:var(--text-dark);background:#fafcff;outline:none;transition:border-color var(--transition),box-shadow var(--transition)}
+    .form-group input:focus,.form-group select:focus{border-color:var(--blue-mid);background:var(--white);box-shadow:0 0 0 3px rgba(74,122,173,.15)}
+    .form-group input.error-field,.form-group select.error-field{border-color:var(--error);background:#fff5f5}
+    .err{display:none;font-size:.76rem;color:var(--error);margin-top:4px;font-weight:700}
+    .err.show{display:block}
+    .form-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a7aad' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+    /* GCASH */
+    .gcash-card::before{background:linear-gradient(90deg,#0070e0,#00a3ff,#0070e0)!important}
+    .gcash-badge{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px}
+    .gcash-logo{background:linear-gradient(135deg,#0070e0,#00a3ff);color:white;font-weight:900;font-size:1.1rem;padding:6px 14px;border-radius:8px;letter-spacing:.04em}
+    .gcash-title{font-family:'Cinzel',serif;font-size:1.15rem;font-weight:700;color:var(--blue-deep)}
+    .qr-wrapper{display:flex;flex-direction:column;align-items:center;margin:0 auto 22px}
+    .qr-frame{border:3px solid var(--gcash-blue);border-radius:16px;padding:10px;background:white;box-shadow:0 6px 24px rgba(0,112,224,.18);display:inline-block}
+    .qr-frame img{width:200px;height:200px;object-fit:contain;display:block;border-radius:8px}
+    .qr-placeholder{width:200px;height:200px;background:linear-gradient(135deg,#e8f2ff,#d0e8ff);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--gcash-blue)}
+    .qr-placeholder .qi{font-size:3.5rem}
+    .qr-placeholder p{font-size:.78rem;font-weight:700;text-align:center}
+    .qr-caption{margin-top:12px;text-align:center;font-size:.82rem;color:var(--text-mid);line-height:1.6}
+    .qr-caption strong{color:var(--gcash-blue);font-size:1rem;display:block;margin-bottom:2px}
+    .steps{background:var(--gcash-light);border-radius:12px;padding:16px 18px;margin-bottom:22px}
+    .steps-title{font-size:.76rem;font-weight:700;color:var(--gcash-blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+    .step-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:.84rem;color:var(--text-dark);line-height:1.5}
+    .step-item:last-child{margin-bottom:0}
+    .step-num{width:22px;height:22px;background:var(--gcash-blue);color:white;border-radius:50%;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .upload-area{border:2px dashed #99bce8;border-radius:12px;padding:22px 16px;text-align:center;cursor:pointer;transition:var(--transition);background:#fafcff;position:relative}
+    .upload-area:hover,.upload-area.drag-over{border-color:var(--gcash-blue);background:var(--gcash-light)}
+    .upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .upload-icon{font-size:2rem;margin-bottom:6px}
+    .upload-text{font-size:.87rem;color:var(--text-mid);line-height:1.5}
+    .upload-text strong{color:var(--gcash-blue)}
+    .preview-wrap{display:none;margin-top:14px;border-radius:12px;overflow:hidden;border:2px solid #b0d4f8;position:relative}
+    .preview-wrap.show{display:block}
+    .preview-wrap img{width:100%;max-height:280px;object-fit:contain;display:block;background:#f0f6ff}
+    .preview-remove{position:absolute;top:8px;right:8px;background:rgba(192,57,43,.85);color:white;border:none;border-radius:50%;width:30px;height:30px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+    .preview-remove:hover{background:var(--error)}
+    .preview-name{padding:6px 10px;font-size:.76rem;color:var(--gcash-blue);background:var(--gcash-light);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* BUTTONS */
+    .btn-submit{width:100%;padding:15px;margin-top:8px;font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;letter-spacing:.14em;color:var(--white);background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;border-radius:50px;cursor:pointer;box-shadow:0 6px 20px rgba(184,146,42,.35);transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:10px}
+    .btn-submit:hover:not(:disabled){background:linear-gradient(135deg,var(--blue-deep),var(--blue-mid));box-shadow:0 8px 28px rgba(30,58,95,.3);transform:translateY(-2px)}
+    .btn-submit:disabled{opacity:.65;cursor:not-allowed}
+    .spinner{display:none;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+    .spinner.show{display:block}
+
+    /* MESSAGES */
+    .form-msg{display:none;margin-top:20px;padding:15px 18px;border-radius:12px;font-size:.92rem;font-weight:700;text-align:center;line-height:1.6}
+    .form-msg.success{display:block;background:linear-gradient(135deg,#e8f8ef,#d0f0e0);color:var(--success);border:1.5px solid #a0dbb8}
+    .form-msg.err-box{display:block;background:#fff0ef;color:var(--error);border:1.5px solid #f5b8b3}
+    .form-msg.info{display:block;background:var(--gcash-light);color:var(--gcash-blue);border:1.5px solid #b0d4f8}
+
+    /* TWO COL LAYOUT */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:1100px;width:100%}
+    @media(max-width:780px){.two-col{grid-template-columns:1fr}}
+
+    /* FOOTER */
+    footer{width:100%;text-align:center;padding:24px;font-size:.78rem;color:#99a;letter-spacing:.05em;border-top:1px solid #e8e4d8;margin-top:auto}
+    footer strong{color:var(--gold)}
+
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:520px){.card{padding:24px 16px}.btn-enter{padding:13px 28px;font-size:.92rem}}
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="ornament-bar" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav class="top-nav">
+    <div class="nav-brand">✝ JSM</div>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="admin.html" class="admin-link">⚙ Admin</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="cross-icon" aria-hidden="true">✝</div>
+    <h1 class="hero-title">Jesus Saves <span>Ministry</span></h1>
+    <p class="hero-sub">Welcome to Our Registration Page</p>
+    <p class="verse">
+      "For God so loved the world that He gave His one and only Son,<br>
+      that whoever believes in Him shall not perish but have eternal life."<br>
+      <strong>— John 3:16</strong>
+    </p>
+    <div class="divider" aria-hidden="true"></div>
+    <div class="hero-btns">
+      <button class="btn-enter" id="btnEnter">
+        <span>✝ &nbsp;Register Now</span>
+      </button>
+      <a href="admin.html" class="btn-view">📋 &nbsp;View Attendance</a>
+    </div>
+  </section>
+
+  <!-- REGISTRATION SECTION -->
+  <section class="reg-section" id="regSection">
+    <div class="section-header">
+      <h2>✝ &nbsp;New Member Registration</h2>
+      <p>Fill in your details and complete GCash payment to register.</p>
+      <div class="gold-line"></div>
+    </div>
+
+    <div class="two-col">
+      <!-- FORM CARD -->
+      <div class="card">
+        <h2 class="card-title"><span class="cs">✝</span> Personal Details <span class="cs">✝</span></h2>
+        <p class="card-sub">Fields marked <span style="color:var(--gold);font-weight:700;">*</span> are required.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="surname">Surname <span class="req">*</span></label>
+            <input type="text" id="surname" placeholder="e.g. Santos" autocomplete="family-name"/>
+            <span class="err" id="err-surname">Please enter your surname.</span>
+          </div>
+          <div class="form-group">
+            <label for="firstname">First Name <span class="req">*</span></label>
+            <input type="text" id="firstname" placeholder="e.g. Maria" autocomplete="given-name"/>
+            <span class="err" id="err-firstname">Please enter your first name.</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="middlename">Middle Name <span style="font-weight:300;color:#aaa;font-size:.74rem;">(Optional)</span></label>
+          <input type="text" id="middlename" placeholder="e.g. Cruz" autocomplete="additional-name"/>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address <span class="req">*</span></label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+          <span class="err" id="err-email">Please enter a valid email address.</span>
+        </div>
+        <div class="form-group">
+          <label for="contact">Contact Number <span class="req">*</span></label>
+          <input type="tel" id="contact" placeholder="e.g. 09171234567" inputmode="numeric" autocomplete="tel"/>
+          <span class="err" id="err-contact">Please enter a valid contact number.</span>
+        </div>
+        <div class="form-group">
+          <label for="memberType">Member Type <span class="req">*</span></label>
+          <select id="memberType">
+            <option value="">— Select Type —</option>
+            <option value="Church Member">Church Member</option>
+            <option value="Visitor">Visitor</option>
+            <option value="Volunteer">Volunteer</option>
+          </select>
+          <span class="err" id="err-type">Please select a member type.</span>
+        </div>
+        <p style="text-align:center;color:var(--blue-mid);font-size:.85rem;margin-top:10px;font-style:italic;">
+          ➡️ After paying via GCash, upload your screenshot and submit.
+        </p>
+      </div>
+
+      <!-- GCASH CARD -->
+      <div class="card gcash-card">
+        <div class="gcash-badge">
+          <div class="gcash-logo">G</div>
+          <div>
+            <div class="gcash-title">GCash Payment</div>
+            <p style="font-size:.75rem;color:var(--text-mid);text-align:center;">Scan &bull; Pay &bull; Upload Proof</p>
+          </div>
+        </div>
+
+        <div class="qr-wrapper">
+          <div class="qr-frame">
+            <img src="qr.jpg" alt="GCash QR Code" id="qrImg"
+              onerror="this.style.display='none';document.getElementById('qrPH').style.display='flex';"/>
+            <div class="qr-placeholder" id="qrPH" style="display:none;">
+              <div class="qi">📱</div>
+              <p>Place your<br>GCash QR here<br><br><small style="opacity:.65;font-weight:400;">(add qr.jpg)</small></p>
+            </div>
+          </div>
+          <div class="qr-caption">
+            <strong>Jesus Saves Ministry</strong>
+            Scan with GCash app to pay
+          </div>
+        </div>
+
+        <div class="steps">
+          <div class="steps-title">📋 How to Pay via GCash</div>
+          <div class="step-item"><div class="step-num">1</div><div>Open <strong>GCash</strong> and tap <strong>"Pay QR"</strong></div></div>
+          <div class="step-item"><div class="step-num">2</div><div>Scan the QR code above</div></div>
+          <div class="step-item"><div class="step-num">3</div><div>Enter the <strong>registration fee</strong> and confirm</div></div>
+          <div class="step-item"><div class="step-num">4</div><div>Take a <strong>screenshot</strong> of the confirmation</div></div>
+          <div class="step-item"><div class="step-num">5</div><div>Upload the screenshot below and click <strong>Submit</strong></div></div>
+        </div>
+
+        <div class="form-group">
+          <label for="paymentProof">Proof of Payment <span class="req">*</span></label>
+          <div class="upload-area" id="uploadArea">
+            <input type="file" id="paymentProof" accept="image/jpeg,image/png,image/gif,image/webp"/>
+            <div class="upload-icon">📎</div>
+            <div class="upload-text"><strong>Click to upload</strong> or drag &amp; drop<br>JPG, PNG, GIF, WEBP &bull; Max 5MB</div>
+          </div>
+          <span class="err" id="err-proof">Please upload your GCash payment screenshot.</span>
+          <div class="preview-wrap" id="previewWrap">
+            <img id="previewImg" src="" alt="Payment proof preview"/>
+            <div class="preview-name" id="previewName"></div>
+            <button type="button" class="preview-remove" id="removeBtn" title="Remove">✕</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-submit" id="btnSubmitAll">
+          <div class="spinner" id="mainSpinner"></div>
+          <span id="mainLabel">✝ &nbsp;Complete Registration &amp; Submit Payment</span>
+        </button>
+        <div class="form-msg" id="mainMsg" role="alert"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    &copy; <span id="footerYear"></span> <strong>Jesus Saves Ministry</strong>. All rights reserved. &nbsp;✝
+  </footer>
+</div>
+
+<script>
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzpJbkVOamcnMBWpdVj21r1k5d1CSJGS85N6zKkaBacHaUYgeUhJVe6x2xO-FUwwNC5/exec";
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+  document.getElementById('btnEnter').addEventListener('click', () => {
+    const s = document.getElementById('regSection');
+    s.classList.add('visible');
+    s.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+
+  function showErr(fid,eid){
+    const f=document.getElementById(fid);if(f)f.classList.add('error-field');
+    document.getElementById(eid).classList.add('show');
+  }
+  function clearErr(fid,eid){
+    const f=document.getElementById(fid);if(f)f.classList.remove('error-field');
+    if(eid)document.getElementById(eid).classList.remove('show');
+  }
+  const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const validContact=v=>/^\d{7,15}$/.test(v);
+
+  ['surname','firstname','email','contact'].forEach(id=>
+    document.getElementById(id).addEventListener('input',()=>clearErr(id,'err-'+id))
+  );
+  document.getElementById('memberType').addEventListener('change',()=>clearErr('memberType','err-type'));
+  document.getElementById('contact').addEventListener('keypress',e=>{
+    if(!/[0-9]/.test(e.key)&&!['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+  });
+
+  let b64Data=null,b64Name='',b64Type='';
+  const fileInput=document.getElementById('paymentProof');
+  const uploadArea=document.getElementById('uploadArea');
+  const previewWrap=document.getElementById('previewWrap');
+  const previewImg=document.getElementById('previewImg');
+  const previewName=document.getElementById('previewName');
+  const removeBtn=document.getElementById('removeBtn');
+
+  function handleFile(file){
+    if(!file)return;
+    if(file.size>5*1024*1024){document.getElementById('err-proof').textContent='File too large. Max 5MB.';document.getElementById('err-proof').classList.add('show');return;}
+    clearErr(null,'err-proof');
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const res=ev.target.result;
+      b64Data=res.split(',')[1];b64Name=file.name;b64Type=file.type;
+      previewImg.src=res;previewName.textContent=file.name;previewWrap.classList.add('show');
+    };
+    reader.readAsDataURL(file);
+  }
+  fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
+  uploadArea.addEventListener('dragover',e=>{e.preventDefault();uploadArea.classList.add('drag-over');});
+  uploadArea.addEventListener('dragleave',()=>uploadArea.classList.remove('drag-over'));
+  uploadArea.addEventListener('drop',e=>{e.preventDefault();uploadArea.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f){fileInput.files=e.dataTransfer.files;handleFile(f);}});
+  removeBtn.addEventListener('click',()=>{b64Data=null;b64Name='';b64Type='';fileInput.value='';previewImg.src='';previewWrap.classList.remove('show');});
+
+  let busy=false;
+  document.getElementById('btnSubmitAll').addEventListener('click',async()=>{
+    if(busy)return;
+    const sur=document.getElementById('surname').value.trim();
+    const fir=document.getElementById('firstname').value.trim();
+    const mid=document.getElementById('middlename').value.trim();
+    const eml=document.getElementById('email').value.trim();
+    const con=document.getElementById('contact').value.trim();
+    const typ=document.getElementById('memberType').value;
+    const msg=document.getElementById('mainMsg');
+    msg.className='form-msg';msg.textContent='';
+    let ok=true;
+    if(!sur){showErr('surname','err-surname');ok=false;}else clearErr('surname','err-surname');
+    if(!fir){showErr('firstname','err-firstname');ok=false;}else clearErr('firstname','err-firstname');
+    if(!validEmail(eml)){showErr('email','err-email');ok=false;}else clearErr('email','err-email');
+    if(!validContact(con)){showErr('contact','err-contact');ok=false;}else clearErr('contact','err-contact');
+    if(!typ){showErr('memberType','err-type');ok=false;}else clearErr('memberType','err-type');
+    if(!b64Data){document.getElementById('err-proof').textContent='Please upload your GCash payment screenshot.';document.getElementById('err-proof').classList.add('show');ok=false;}else clearErr(null,'err-proof');
+    if(!ok)return;
+    busy=true;
+    const btn=document.getElementById('btnSubmitAll');
+    btn.disabled=true;
+    document.getElementById('mainSpinner').classList.add('show');
+    document.getElementById('mainLabel').textContent='Submitting… please wait';
+    msg.textContent='⏳ Uploading your registration and payment proof…';
+    msg.className='form-msg info';
+    try{
+      await fetch(scriptURL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'register',surname:sur,firstname:fir,middlename:mid,email:eml,contact:con,memberType:typ,fileName:b64Name,fileType:b64Type,fileData:b64Data})
+      });
+      msg.textContent='✝  Registration complete! Your payment proof has been submitted. We will verify and confirm your slot. God bless you! 🙏';
+      msg.className='form-msg success';
+      ['surname','firstname','middlename','email','contact'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('memberType').value='';
+      removeBtn.click();
+    }catch(err){
+      msg.textContent='⚠  Could not connect. Please check your internet and try again.';
+      msg.className='form-msg err-box';
+    }finally{
+      busy=false;btn.disabled=false;
+      document.getElementById('mainSpinner').classList.remove('show');
+      document.getElementById('mainLabel').textContent='✝  Complete Registration & Submit Payment';
+      msg.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  });
+</script>
+</body>
+</html>

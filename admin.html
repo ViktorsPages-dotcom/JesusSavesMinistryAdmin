@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JSM Admin – Church Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --gold:#b8922a;--gold-light:#d4a93e;--gold-pale:#f5e9c8;
+      --cream:#fdfaf3;--blue-mid:#4a7aad;--blue-deep:#1e3a5f;
+      --text-dark:#1a1a2e;--text-mid:#444466;--white:#ffffff;
+      --error:#c0392b;--success:#1e7a4e;--visitor:#7b3fa0;
+      --shadow-card:0 12px 40px rgba(30,58,95,.12),0 3px 10px rgba(184,146,42,.08);
+      --radius:16px;--transition:.3s cubic-bezier(.4,0,.2,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Lato',sans-serif;background:#f0f4f8;color:var(--text-dark);min-height:100vh}
+
+    /* LAYOUT */
+    .app{display:grid;grid-template-columns:240px 1fr;grid-template-rows:auto 1fr;min-height:100vh}
+    @media(max-width:900px){.app{grid-template-columns:1fr}}
+
+    /* TOP BAR */
+    .topbar{grid-column:1/-1;background:var(--blue-deep);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;box-shadow:0 2px 12px rgba(0,0,0,.25);position:sticky;top:0;z-index:200}
+    .topbar-brand{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold);letter-spacing:.06em}
+    .topbar-brand span{font-size:.75rem;color:rgba(255,255,255,.5);display:block;font-family:'Lato',sans-serif;letter-spacing:.05em;font-weight:300}
+    .topbar-right{display:flex;align-items:center;gap:12px}
+    .topbar-date{font-size:.8rem;color:rgba(255,255,255,.6);font-style:italic}
+    .btn-public{font-family:'Cinzel',serif;font-size:.75rem;font-weight:700;letter-spacing:.08em;color:var(--blue-deep);background:var(--gold);border:none;padding:8px 18px;border-radius:30px;cursor:pointer;transition:var(--transition);text-decoration:none;display:inline-block}
+    .btn-public:hover{background:var(--gold-light);transform:translateY(-1px)}
+
+    /* SIDEBAR */
+    .sidebar{background:var(--blue-deep);padding:24px 0;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.07)}
+    @media(max-width:900px){.sidebar{display:none}}
+    .sidebar-menu{list-style:none;flex:1}
+    .sidebar-menu li a{display:flex;align-items:center;gap:12px;padding:14px 24px;color:rgba(255,255,255,.65);text-decoration:none;font-size:.88rem;font-weight:700;letter-spacing:.05em;transition:var(--transition);border-left:3px solid transparent}
+    .sidebar-menu li a:hover{background:rgba(255,255,255,.07);color:#fff;border-left-color:var(--gold-light)}
+    .sidebar-menu li a.active{background:rgba(184,146,42,.15);color:var(--gold-light);border-left-color:var(--gold)}
+    .sidebar-menu li a .icon{font-size:1.1rem;width:24px;text-align:center}
+    .sidebar-section{padding:12px 24px 6px;font-size:.65rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:12px}
+
+    /* MAIN */
+    .main{padding:28px;overflow-y:auto;display:flex;flex-direction:column;gap:28px}
+
+    /* PANEL */
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* CARDS */
+    .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-card);overflow:hidden}
+    .card-head{padding:20px 24px;border-bottom:1px solid #eef;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .card-head h2{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:var(--blue-deep)}
+    .card-head h2 .gold{color:var(--gold)}
+    .card-body{padding:24px}
+
+    /* STAT CARDS */
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+    .stat-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-card);padding:22px;text-align:center;position:relative;overflow:hidden}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+    .stat-card.members::before{background:linear-gradient(90deg,var(--blue-deep),var(--blue-mid))}
+    .stat-card.visitors::before{background:linear-gradient(90deg,var(--visitor),#a855f7)}
+    .stat-card.total::before{background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+    .stat-card.pct::before{background:linear-gradient(90deg,var(--success),#22c55e)}
+    .stat-num{font-family:'Cinzel Decorative',serif;font-size:2.4rem;font-weight:700;line-height:1;color:var(--blue-deep)}
+    .stat-card.visitors .stat-num{color:var(--visitor)}
+    .stat-card.total .stat-num{color:var(--gold)}
+    .stat-card.pct .stat-num{color:var(--success)}
+    .stat-label{font-size:.78rem;font-weight:700;letter-spacing:.08em;color:var(--text-mid);margin-top:8px;text-transform:uppercase}
+
+    /* TABLE */
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.88rem}
+    thead th{background:linear-gradient(135deg,var(--blue-deep),#2a4e7a);color:rgba(255,255,255,.9);font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.08em;padding:12px 16px;text-align:left;white-space:nowrap}
+    thead th:first-child{border-radius:var(--radius) 0 0 0}
+    thead th:last-child{border-radius:0 var(--radius) 0 0}
+    tbody tr{border-bottom:1px solid #f0f2f6;transition:background var(--transition)}
+    tbody tr:hover{background:#f8faff}
+    tbody tr:last-child{border-bottom:none}
+    tbody td{padding:12px 16px;vertical-align:middle}
+    .member-name{font-weight:700;color:var(--blue-deep)}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.04em}
+    .badge-member{background:#dbeafe;color:#1e40af}
+    .badge-visitor{background:#f3e8ff;color:#7e22ce}
+    .badge-volunteer{background:#dcfce7;color:#166534}
+    .badge-present{background:#dcfce7;color:#166534}
+    .badge-absent{background:#fee2e2;color:#991b1b}
+
+    /* CHECKBOX */
+    .att-check{width:20px;height:20px;cursor:pointer;accent-color:var(--success)}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:none;border-radius:30px;font-family:'Cinzel',serif;font-size:.78rem;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:var(--transition)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--white);box-shadow:0 4px 12px rgba(184,146,42,.3)}
+    .btn-gold:hover:not(:disabled){background:linear-gradient(135deg,var(--blue-deep),var(--blue-mid));box-shadow:0 6px 18px rgba(30,58,95,.3);transform:translateY(-2px)}
+    .btn-blue{background:linear-gradient(135deg,var(--blue-deep),var(--blue-mid));color:var(--white);box-shadow:0 4px 12px rgba(30,58,95,.25)}
+    .btn-blue:hover:not(:disabled){transform:translateY(-2px)}
+    .btn-outline{background:transparent;border:1.5px solid var(--blue-mid);color:var(--blue-deep)}
+    .btn-outline:hover{background:var(--blue-deep);color:#fff}
+    .btn-danger{background:#fee2e2;color:var(--error);border:1.5px solid #fca5a5}
+    .btn-danger:hover{background:var(--error);color:#fff}
+    .btn-success{background:#dcfce7;color:var(--success);border:1.5px solid #86efac}
+    .btn-success:hover{background:var(--success);color:#fff}
+    .btn-sm{padding:6px 12px;font-size:.72rem}
+
+    /* SEARCH */
+    .search-bar{position:relative;flex:1;min-width:200px}
+    .search-bar input{width:100%;padding:9px 36px 9px 14px;border:1.5px solid #dce3ef;border-radius:30px;font-size:.88rem;font-family:'Lato',sans-serif;outline:none;background:#fafcff;transition:border-color var(--transition)}
+    .search-bar input:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(74,122,173,.12)}
+    .search-bar::after{content:'🔍';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.85rem;pointer-events:none}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--white);border-radius:var(--radius);padding:36px;max-width:440px;width:90%;box-shadow:0 30px 80px rgba(30,58,95,.25);animation:scaleIn .3s ease}
+    .modal h3{font-family:'Cinzel',serif;font-size:1.2rem;color:var(--blue-deep);margin-bottom:20px;text-align:center}
+    .modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:24px}
+    @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+
+    /* FORM inside card/modal */
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:.76rem;font-weight:700;letter-spacing:.08em;color:var(--blue-deep);margin-bottom:5px;text-transform:uppercase}
+    .form-group input,.form-group select{width:100%;padding:10px 14px;border:1.5px solid #dce3ef;border-radius:10px;font-family:'Lato',sans-serif;font-size:.9rem;color:var(--text-dark);background:#fafcff;outline:none;transition:border-color var(--transition)}
+    .form-group input:focus,.form-group select:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(74,122,173,.12)}
+    .form-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a7aad' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:28px;right:28px;background:var(--blue-deep);color:#fff;padding:14px 22px;border-radius:12px;font-size:.88rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:1000;opacity:0;transform:translateY(20px);transition:all .4s ease;pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast.success{background:var(--success)}
+    .toast.error{background:var(--error)}
+
+    /* EMPTY STATE */
+    .empty{text-align:center;padding:48px;color:var(--text-mid)}
+    .empty .ei{font-size:2.5rem;margin-bottom:12px}
+    .empty p{font-size:.9rem}
+
+    /* VISITOR ROW */
+    .visitor-row td .member-name{color:var(--visitor)}
+
+    /* SUNDAY BANNER */
+    .sunday-banner{background:linear-gradient(135deg,var(--blue-deep),#2a4e7a);border-radius:var(--radius);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;color:#fff}
+    .sunday-banner h3{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold)}
+    .sunday-banner p{font-size:.82rem;color:rgba(255,255,255,.7);margin-top:4px}
+    .btn-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+    /* PROGRESS BAR */
+    .prog-wrap{margin-top:10px}
+    .prog-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-mid);margin-bottom:5px}
+    .prog-bar{height:10px;background:#e8eef6;border-radius:10px;overflow:hidden}
+    .prog-fill{height:100%;background:linear-gradient(90deg,var(--success),#22c55e);border-radius:10px;transition:width .6s ease}
+
+    /* ORNAMENT BAR */
+    .ornament-bar{width:100%;height:4px;background:linear-gradient(90deg,var(--blue-deep),var(--gold),var(--gold-light),var(--gold),var(--blue-deep))}
+
+    /* RESPONSIVE MOBILE NAV */
+    .mobile-nav{display:none;background:var(--blue-deep);padding:8px 16px;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    @media(max-width:900px){.mobile-nav{display:flex}}
+    .mobile-nav a{white-space:nowrap;padding:8px 14px;border-radius:20px;color:rgba(255,255,255,.7);font-size:.75rem;font-weight:700;letter-spacing:.06em;text-decoration:none;transition:var(--transition);border:1px solid transparent}
+    .mobile-nav a.active{background:var(--gold);color:var(--blue-deep);border-color:var(--gold)}
+    .mobile-nav a:not(.active):hover{background:rgba(255,255,255,.1);color:#fff}
+
+    footer{text-align:center;padding:20px;font-size:.75rem;color:#99a;letter-spacing:.05em;border-top:1px solid #e8e4d8;background:var(--white)}
+    footer strong{color:var(--gold)}
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      ✝ Jesus Saves Ministry
+      <span>Admin Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-date" id="topbarDate"></span>
+      <a href="index.html" class="btn-public">← Public Page</a>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Church</div>
+    <ul class="sidebar-menu">
+      <li><a href="#" class="active" data-panel="members"><span class="icon">👥</span> Members List</a></li>
+      <li><a href="#" data-panel="attendance"><span class="icon">📋</span> Sunday Attendance</a></li>
+      <li><a href="#" data-panel="visitors"><span class="icon">🙋</span> Visitors</a></li>
+      <li><a href="#" data-panel="reports"><span class="icon">📊</span> Attendance Reports</a></li>
+    </ul>
+    <div class="sidebar-section">Admin</div>
+    <ul class="sidebar-menu">
+      <li><a href="#" data-panel="controls"><span class="icon">⚙</span> Admin Controls</a></li>
+    </ul>
+  </nav>
+
+  <!-- MOBILE NAV -->
+  <nav class="mobile-nav">
+    <a href="#" class="active" data-panel="members">👥 Members</a>
+    <a href="#" data-panel="attendance">📋 Attendance</a>
+    <a href="#" data-panel="visitors">🙋 Visitors</a>
+    <a href="#" data-panel="reports">📊 Reports</a>
+    <a href="#" data-panel="controls">⚙ Admin</a>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ═══════ PANEL: MEMBERS ═══════ -->
+    <div class="panel active" id="panel-members">
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="gold">✝</span> Church Members Masterlist</h2>
+          <div class="btn-row">
+            <div class="search-bar"><input type="text" id="memberSearch" placeholder="Search members…" oninput="filterMembers()"/></div>
+            <button class="btn btn-blue btn-sm" onclick="showAddMember()">+ Add Member</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name ⬆</th>
+                  <th>Contact</th>
+                  <th>Member Type</th>
+                  <th>Attendance Today</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="membersTbody">
+                <tr><td colspan="6"><div class="empty"><div class="ei">✝</div><p>No members yet. Register members via the public page.</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PANEL: ATTENDANCE ═══════ -->
+    <div class="panel" id="panel-attendance">
+      <div class="sunday-banner">
+        <div>
+          <h3>Sunday Attendance Tracker</h3>
+          <p id="sundayLabel">No active session. Click "Start" to begin.</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="btnStartSunday" onclick="startSunday()">▶ Start New Sunday Attendance</button>
+          <button class="btn btn-outline" onclick="showAddVisitorModal()" style="color:#fff;border-color:rgba(255,255,255,.4)">+ Add Visitor</button>
+        </div>
+      </div>
+
+      <!-- Summary row -->
+      <div class="stat-grid" id="attSummary" style="display:none">
+        <div class="stat-card members"><div class="stat-num" id="sStat1">0</div><div class="stat-label">Members Present</div></div>
+        <div class="stat-card visitors"><div class="stat-num" id="sStat2">0</div><div class="stat-label">Visitors</div></div>
+        <div class="stat-card total"><div class="stat-num" id="sStat3">0</div><div class="stat-label">Total Attendance</div></div>
+        <div class="stat-card pct"><div class="stat-num" id="sStat4">0%</div><div class="stat-label">Attendance Rate</div></div>
+      </div>
+
+      <div class="card" id="attCard" style="display:none">
+        <div class="card-head">
+          <h2><span class="gold">✝</span> Mark Attendance</h2>
+          <div class="btn-row">
+            <div class="search-bar"><input type="text" id="attSearch" placeholder="Search…" oninput="filterAtt()"/></div>
+            <button class="btn btn-success btn-sm" onclick="markAll(true)">✔ Mark All Present</button>
+            <button class="btn btn-outline btn-sm" onclick="markAll(false)">✕ Clear All</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th style="text-align:center">Present</th>
+                </tr>
+              </thead>
+              <tbody id="attTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PANEL: VISITORS ═══════ -->
+    <div class="panel" id="panel-visitors">
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="gold">✝</span> Visitors This Sunday</h2>
+          <button class="btn btn-blue btn-sm" onclick="showAddVisitorModal()">+ Add Visitor</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Visitor Name</th><th>Contact</th><th>Date Added</th><th>Action</th></tr>
+              </thead>
+              <tbody id="visitorsTbody">
+                <tr><td colspan="5"><div class="empty"><div class="ei">🙋</div><p>No visitors logged yet.</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PANEL: REPORTS ═══════ -->
+    <div class="panel" id="panel-reports">
+      <div class="stat-grid">
+        <div class="stat-card members"><div class="stat-num" id="rStat1">0</div><div class="stat-label">Total Members</div></div>
+        <div class="stat-card visitors"><div class="stat-num" id="rStat2">0</div><div class="stat-label">Total Visitors</div></div>
+        <div class="stat-card total"><div class="stat-num" id="rStat3">0</div><div class="stat-label">Total Attendance</div></div>
+        <div class="stat-card pct"><div class="stat-num" id="rStat4">0%</div><div class="stat-label">Attendance Rate</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2><span class="gold">✝</span> Attendance Summary</h2></div>
+        <div class="card-body">
+          <div class="prog-wrap">
+            <div class="prog-label"><span>Members Present</span><span id="progLabel">0 / 0</span></div>
+            <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+          </div>
+          <div id="reportDetail" style="margin-top:24px;font-size:.9rem;color:var(--text-mid);text-align:center">
+            Start a Sunday attendance session to see the summary here.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2><span class="gold">✝</span> Attendance History</h2></div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Date</th><th>Members</th><th>Visitors</th><th>Total</th><th>Rate</th></tr></thead>
+              <tbody id="historyTbody">
+                <tr><td colspan="6"><div class="empty"><div class="ei">📊</div><p>No attendance history yet.</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PANEL: ADMIN CONTROLS ═══════ -->
+    <div class="panel" id="panel-controls">
+      <div class="card">
+        <div class="card-head"><h2><span class="gold">⚙</span> Admin Controls</h2></div>
+        <div class="card-body">
+          <p style="font-size:.9rem;color:var(--text-mid);margin-bottom:24px">Manage attendance sessions and data export.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+            <button class="btn btn-gold" onclick="exportCSV()">📤 Export Attendance CSV</button>
+            <button class="btn btn-blue" onclick="saveAttendance()">💾 Save Attendance</button>
+            <button class="btn btn-success" onclick="saveToSheet()">📊 Save to Google Sheet</button>
+            <button class="btn btn-danger" onclick="confirmClear()">🗑 Clear Attendance</button>
+          </div>
+          <div class="form-msg" id="adminMsg" role="alert" style="margin-top:20px;display:none;padding:14px;border-radius:10px;font-weight:700;font-size:.9rem"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2><span class="gold">✝</span> Sample Data</h2></div>
+        <div class="card-body">
+          <p style="font-size:.88rem;color:var(--text-mid);margin-bottom:16px">Load sample church members for testing purposes.</p>
+          <button class="btn btn-outline" onclick="loadSampleData()">Load Sample Members</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ───── MODAL: Add Member ───── -->
+<div class="modal-overlay" id="addMemberModal">
+  <div class="modal">
+    <h3>✝ Add New Member</h3>
+    <div class="form-group"><label>Surname *</label><input type="text" id="mSurname" placeholder="Santos"/></div>
+    <div class="form-group"><label>First Name *</label><input type="text" id="mFirstname" placeholder="Maria"/></div>
+    <div class="form-group"><label>Middle Name</label><input type="text" id="mMiddle" placeholder="(optional)"/></div>
+    <div class="form-group"><label>Contact Number</label><input type="tel" id="mContact" placeholder="09171234567"/></div>
+    <div class="form-group"><label>Member Type *</label>
+      <select id="mType">
+        <option value="Church Member">Church Member</option>
+        <option value="Visitor">Visitor</option>
+        <option value="Volunteer">Volunteer</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addMemberModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="addMember()">✔ Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── MODAL: Add Visitor ───── -->
+<div class="modal-overlay" id="addVisitorModal">
+  <div class="modal">
+    <h3>🙋 Add Visitor</h3>
+    <div class="form-group"><label>Visitor Name *</label><input type="text" id="vName" placeholder="Full name"/></div>
+    <div class="form-group"><label>Contact (optional)</label><input type="tel" id="vContact" placeholder="09XXXXXXXXX"/></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addVisitorModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="addVisitor()">✔ Add Visitor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── MODAL: Confirm Clear ───── -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3>⚠ Clear Attendance</h3>
+    <p style="text-align:center;color:var(--text-mid);margin-bottom:8px;font-size:.9rem">This will reset all attendance marks for today. This cannot be undone.</p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="clearAttendance()">🗑 Confirm Clear</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<footer>
+  <div class="ornament-bar" style="margin-bottom:16px"></div>
+  &copy; <span id="footerYear"></span> <strong>Jesus Saves Ministry</strong>. Admin Dashboard. &nbsp;✝
+</footer>
+
+<script>
+// ========================================================
+// CONFIG
+// ========================================================
+const scriptURL = "https://script.google.com/macros/s/AKfycbzpJbkVOamcnMBWpdVj21r1k5d1CSJGS85N6zKkaBacHaUYgeUhJVe6x2xO-FUwwNC5/exec";
+
+// ========================================================
+// STATE
+// ========================================================
+let members = JSON.parse(localStorage.getItem('jsm_members') || '[]');
+let visitors = JSON.parse(localStorage.getItem('jsm_visitors') || '[]');
+let attendance = JSON.parse(localStorage.getItem('jsm_attendance') || '{}');
+let history = JSON.parse(localStorage.getItem('jsm_history') || '[]');
+let sessionActive = false;
+let currentSundayDate = null;
+
+// ========================================================
+// INIT
+// ========================================================
+document.getElementById('footerYear').textContent = new Date().getFullYear();
+updateTopbarDate();
+setupNav();
+renderMembers();
+renderVisitors();
+updateReports();
+
+function updateTopbarDate(){
+  const d = new Date();
+  const opts = {weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById('topbarDate').textContent = d.toLocaleDateString('en-US', opts);
+}
+
+// ========================================================
+// NAV
+// ========================================================
+function setupNav(){
+  const allLinks = document.querySelectorAll('[data-panel]');
+  allLinks.forEach(a => a.addEventListener('click', e=>{
+    e.preventDefault();
+    const panel = a.dataset.panel;
+    allLinks.forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll(`[data-panel="${panel}"]`).forEach(x=>x.classList.add('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+panel).classList.add('active');
+    if(panel==='reports') updateReports();
+    if(panel==='attendance') renderAttendance();
+  }));
+}
+
+// ========================================================
+// MEMBERS
+// ========================================================
+function saveMembersLocal(){ localStorage.setItem('jsm_members', JSON.stringify(members)); }
+
+function renderMembers(filter=''){
+  const tbody = document.getElementById('membersTbody');
+  const fl = filter.toLowerCase();
+  const filtered = members.filter(m=> (m.fullname||'').toLowerCase().includes(fl) || (m.contact||'').includes(fl));
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">✝</div><p>No members found.</p></div></td></tr>';return;
+  }
+  tbody.innerHTML = filtered.map((m,i)=>`
+    <tr class="${m.type==='Visitor'?'visitor-row':''}">
+      <td>${i+1}</td>
+      <td><div class="member-name">${m.fullname}</div></td>
+      <td>${m.contact||'—'}</td>
+      <td><span class="badge badge-${m.type.toLowerCase().replace(' ','-')}">${m.type}</span></td>
+      <td style="text-align:center">
+        <input type="checkbox" class="att-check" ${attendance[m.id]?'checked':''} onchange="toggleAttendance('${m.id}',this.checked)" title="Mark present"/>
+        <span style="font-size:.75rem;color:var(--text-mid);margin-left:6px">${attendance[m.id]?'Present':'Absent'}</span>
+      </td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeMember('${m.id}')">✕</button></td>
+    </tr>`).join('');
+}
+
+function filterMembers(){ renderMembers(document.getElementById('memberSearch').value); }
+
+function showAddMember(){ openModal('addMemberModal'); }
+
+function addMember(){
+  const sur = document.getElementById('mSurname').value.trim();
+  const fir = document.getElementById('mFirstname').value.trim();
+  const mid = document.getElementById('mMiddle').value.trim();
+  const con = document.getElementById('mContact').value.trim();
+  const typ = document.getElementById('mType').value;
+  if(!sur||!fir){showToast('Please enter surname and first name.','error');return;}
+  const fullname = [fir, mid, sur].filter(Boolean).join(' ');
+  const m = {id:'m_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),fullname,surname:sur,firstname:fir,middlename:mid,contact:con,type:typ,dateAdded:new Date().toLocaleDateString()};
+  members.push(m);
+  members.sort((a,b)=>a.fullname.localeCompare(b.fullname));
+  saveMembersLocal();
+  closeModal('addMemberModal');
+  ['mSurname','mFirstname','mMiddle','mContact'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mType').value='Church Member';
+  renderMembers();
+  renderAttendance();
+  showToast(`${fullname} added!`,'success');
+}
+
+function removeMember(id){
+  members = members.filter(m=>m.id!==id);
+  delete attendance[id];
+  saveMembersLocal();
+  renderMembers();
+  renderAttendance();
+  showToast('Member removed.','success');
+}
+
+// ========================================================
+// ATTENDANCE
+// ========================================================
+function startSunday(){
+  sessionActive = true;
+  currentSundayDate = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('sundayLabel').textContent = '📅 ' + currentSundayDate;
+  document.getElementById('btnStartSunday').textContent = '↺ Restart Session';
+  document.getElementById('attSummary').style.display = 'grid';
+  document.getElementById('attCard').style.display = 'block';
+  // reset attendance for members only (keep visitors)
+  members.forEach(m=>{ if(attendance[m.id]===undefined) attendance[m.id]=false; });
+  localStorage.setItem('jsm_attendance', JSON.stringify(attendance));
+  renderAttendance();
+  updateAttSummary();
+  showToast('Sunday session started!','success');
+}
+
+function renderAttendance(filter=''){
+  const tbody = document.getElementById('attTbody');
+  const fl = (filter||document.getElementById('attSearch')?.value||'').toLowerCase();
+  const all = [
+    ...members.map(m=>({...m,isVisitor:false})),
+    ...visitors.map(v=>({...v,isVisitor:true}))
+  ].filter(x=>(x.fullname||x.name||'').toLowerCase().includes(fl));
+
+  if(!all.length){tbody.innerHTML='<tr><td colspan="4"><div class="empty"><div class="ei">✝</div><p>No one found.</p></div></td></tr>';return;}
+  tbody.innerHTML = all.map((x,i)=>{
+    const id = x.id;
+    const name = x.fullname||x.name;
+    const type = x.isVisitor ? 'Visitor' : x.type;
+    const isPresent = attendance[id]||false;
+    return `<tr class="${x.isVisitor?'visitor-row':''}">
+      <td>${i+1}</td>
+      <td><div class="member-name">${name}</div></td>
+      <td><span class="badge badge-${type.toLowerCase().replace(' ','-')}">${type}</span></td>
+      <td style="text-align:center">
+        <input type="checkbox" class="att-check" ${isPresent?'checked':''} onchange="toggleAttendance('${id}',this.checked)"/>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterAtt(){ renderAttendance(document.getElementById('attSearch').value); }
+
+function toggleAttendance(id,val){
+  attendance[id] = val;
+  localStorage.setItem('jsm_attendance', JSON.stringify(attendance));
+  updateAttSummary();
+  renderMembers(document.getElementById('memberSearch').value);
+}
+
+function markAll(val){
+  members.forEach(m=>attendance[m.id]=val);
+  visitors.forEach(v=>attendance[v.id]=val);
+  localStorage.setItem('jsm_attendance', JSON.stringify(attendance));
+  renderAttendance();
+  renderMembers();
+  updateAttSummary();
+  showToast(val?'All marked present.':'All cleared.','success');
+}
+
+function updateAttSummary(){
+  const mp = members.filter(m=>attendance[m.id]).length;
+  const vp = visitors.filter(v=>attendance[v.id]).length;
+  const total = mp+vp;
+  const rate = members.length ? Math.round(mp/members.length*100) : 0;
+  document.getElementById('sStat1').textContent=mp;
+  document.getElementById('sStat2').textContent=vp;
+  document.getElementById('sStat3').textContent=total;
+  document.getElementById('sStat4').textContent=rate+'%';
+}
+
+// ========================================================
+// VISITORS
+// ========================================================
+function saveVisitorsLocal(){ localStorage.setItem('jsm_visitors', JSON.stringify(visitors)); }
+
+function showAddVisitorModal(){ openModal('addVisitorModal'); }
+
+function addVisitor(){
+  const name = document.getElementById('vName').value.trim();
+  const con = document.getElementById('vContact').value.trim();
+  if(!name){showToast('Please enter visitor name.','error');return;}
+  const v = {id:'v_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,fullname:name,contact:con,type:'Visitor',dateAdded:new Date().toLocaleDateString()};
+  visitors.push(v);
+  saveVisitorsLocal();
+  attendance[v.id] = true; // auto-mark present
+  localStorage.setItem('jsm_attendance', JSON.stringify(attendance));
+  closeModal('addVisitorModal');
+  document.getElementById('vName').value='';
+  document.getElementById('vContact').value='';
+  renderVisitors();
+  renderAttendance();
+  updateAttSummary();
+  showToast(`${name} added as visitor!`,'success');
+}
+
+function renderVisitors(){
+  const tbody = document.getElementById('visitorsTbody');
+  if(!visitors.length){
+    tbody.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🙋</div><p>No visitors logged yet.</p></div></td></tr>';return;
+  }
+  tbody.innerHTML = visitors.map((v,i)=>`
+    <tr class="visitor-row">
+      <td>${i+1}</td>
+      <td><div class="member-name">${v.name}</div></td>
+      <td>${v.contact||'—'}</td>
+      <td>${v.dateAdded||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeVisitor('${v.id}')">✕</button></td>
+    </tr>`).join('');
+}
+
+function removeVisitor(id){
+  visitors = visitors.filter(v=>v.id!==id);
+  delete attendance[id];
+  saveVisitorsLocal();
+  localStorage.setItem('jsm_attendance', JSON.stringify(attendance));
+  renderVisitors();
+  renderAttendance();
+  updateAttSummary();
+  showToast('Visitor removed.','success');
+}
+
+// ========================================================
+// REPORTS
+// ========================================================
+function updateReports(){
+  const mp = members.filter(m=>attendance[m.id]).length;
+  const vp = visitors.filter(v=>attendance[v.id]).length;
+  const total = mp+vp;
+  const rate = members.length ? Math.round(mp/members.length*100) : 0;
+  document.getElementById('rStat1').textContent = mp;
+  document.getElementById('rStat2').textContent = vp;
+  document.getElementById('rStat3').textContent = total;
+  document.getElementById('rStat4').textContent = rate+'%';
+  document.getElementById('progLabel').textContent = `${mp} / ${members.length}`;
+  document.getElementById('progFill').style.width = rate+'%';
+  const d = document.getElementById('reportDetail');
+  if(sessionActive){
+    d.innerHTML=`<strong>Session Date:</strong> ${currentSundayDate}<br>
+      Members Present: <strong>${mp}</strong> | Visitors: <strong>${vp}</strong> | Total: <strong>${total}</strong> | Rate: <strong>${rate}%</strong>`;
+  }
+  renderHistory();
+}
+
+function renderHistory(){
+  const tbody = document.getElementById('historyTbody');
+  if(!history.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">📊</div><p>No attendance history yet.</p></div></td></tr>';return;
+  }
+  tbody.innerHTML = history.map((h,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${h.date}</td>
+      <td>${h.members}</td>
+      <td>${h.visitors}</td>
+      <td>${h.total}</td>
+      <td>${h.rate}%</td>
+    </tr>`).join('');
+}
+
+// ========================================================
+// ADMIN CONTROLS
+// ========================================================
+function exportCSV(){
+  if(!sessionActive&&!members.length){showToast('No data to export.','error');return;}
+  const rows=[['#','Name','Type','Contact','Status','Date']];
+  [...members,...visitors].forEach((x,i)=>{
+    const name=x.fullname||x.name;
+    rows.push([i+1,name,x.type||'Visitor',x.contact||'',attendance[x.id]?'Present':'Absent',x.dateAdded||new Date().toLocaleDateString()]);
+  });
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`JSM_Attendance_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('CSV exported!','success');
+}
+
+function saveAttendance(){
+  // push to history
+  const mp=members.filter(m=>attendance[m.id]).length;
+  const vp=visitors.filter(v=>attendance[v.id]).length;
+  const rate=members.length?Math.round(mp/members.length*100):0;
+  const entry={date:currentSundayDate||new Date().toLocaleDateString(),members:mp,visitors:vp,total:mp+vp,rate};
+  history.unshift(entry);
+  localStorage.setItem('jsm_history',JSON.stringify(history));
+  showToast('Attendance saved to history!','success');
+  updateReports();
+}
+
+async function saveToSheet(){
+  const mp=members.filter(m=>attendance[m.id]).length;
+  const vp=visitors.filter(v=>attendance[v.id]).length;
+  const msg=document.getElementById('adminMsg');
+  msg.style.display='block';
+  msg.style.background='#e8f2ff';msg.style.color='#0070e0';msg.style.border='1.5px solid #b0d4f8';
+  msg.textContent='⏳ Saving to Google Sheet…';
+  try{
+    await fetch(scriptURL,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'saveAttendance',date:currentSundayDate,membersPresent:mp,visitors:vp,total:mp+vp,details:[...members,...visitors].map(x=>({name:x.fullname||x.name,type:x.type||'Visitor',status:attendance[x.id]?'Present':'Absent'}))})
+    });
+    msg.style.background='#d0f0e0';msg.style.color='#1e7a4e';msg.style.border='1.5px solid #a0dbb8';
+    msg.textContent='✝ Attendance saved to Google Sheet! God bless. 🙏';
+  }catch(e){
+    msg.style.background='#fff0ef';msg.style.color='#c0392b';msg.style.border='1.5px solid #f5b8b3';
+    msg.textContent='⚠ Could not connect. Please check your internet.';
+  }
+}
+
+function confirmClear(){ openModal('confirmModal'); }
+
+function clearAttendance(){
+  attendance={};
+  localStorage.setItem('jsm_attendance','{}');
+  closeModal('confirmModal');
+  renderMembers();
+  renderAttendance();
+  updateAttSummary();
+  showToast('Attendance cleared.','success');
+}
+
+function loadSampleData(){
+  const samples=[
+    {sur:'Santos',fir:'Maria',mid:'Cruz',con:'09171234567',type:'Church Member'},
+    {sur:'Reyes',fir:'Jose',mid:'Lopez',con:'09281234567',type:'Church Member'},
+    {sur:'Garcia',fir:'Ana',mid:'',con:'09391234567',type:'Volunteer'},
+    {sur:'Torres',fir:'Pedro',mid:'Bautista',con:'09451234567',type:'Church Member'},
+    {sur:'Villanueva',fir:'Elena',mid:'Ramos',con:'09561234567',type:'Church Member'},
+    {sur:'Mendoza',fir:'Roberto',mid:'',con:'09671234567',type:'Volunteer'},
+    {sur:'Lim',fir:'Cathy',mid:'Go',con:'09781234567',type:'Church Member'},
+    {sur:'Cruz',fir:'Emmanuel',mid:'David',con:'09891234567',type:'Church Member'},
+  ];
+  samples.forEach(s=>{
+    const fullname=[s.fir,s.mid,s.sur].filter(Boolean).join(' ');
+    if(!members.find(m=>m.fullname===fullname)){
+      members.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),fullname,surname:s.sur,firstname:s.fir,middlename:s.mid,contact:s.con,type:s.type,dateAdded:new Date().toLocaleDateString()});
+    }
+  });
+  members.sort((a,b)=>a.fullname.localeCompare(b.fullname));
+  saveMembersLocal();
+  renderMembers();
+  renderAttendance();
+  showToast('Sample members loaded!','success');
+}
+
+// ========================================================
+// MODAL HELPERS
+// ========================================================
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ========================================================
+// TOAST
+// ========================================================
+let toastTimer;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+(type||'');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
